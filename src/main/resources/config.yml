@@ -6,7 +6,6 @@ config:
         port: 8145
 messages:
     badconfig:
-        localIP: "Local IP addresses aren't allowed for Fortumo access!"
         reverseProxy: "Fortumo request handler's reverse proxy is badly configured! Contact with system administrator"
     badmessage:
         badUsername: "Username is invalid!"

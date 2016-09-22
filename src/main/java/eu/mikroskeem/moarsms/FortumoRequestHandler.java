@@ -24,22 +24,15 @@ public class FortumoRequestHandler extends NanoHTTPD {
         logger.info("Beep-boop, got request");
         Map<String, String> params = session.getParms();
 
-        String originIP = session.getHeaders().get("remote-addr");
-        if(originIP.equals("127.0.0.1") && !allowTest){
-            /*
-             * TODO: Parse X-Forwarded-For in better way
-             * Since X-Forwarded-For header *can* contain value like this:
-             * "1.2.3.4, 4.5.6.7, 8.9.10.11"
-             */
+        String originIP = session.getHeaders().get("x-real-ip");
+        if(originIP != null){
             String nginxProxy = session.getHeaders().get("x-nginx-proxy");
-            originIP = session.getHeaders().get("x-forwarded-for");
-            if(originIP == null) {
-                logger.info("Local IP addresses aren't allowed sadly. If this is test, please configure plugin so!");
-                return sendFailResponse(API.getInstance().getMessage("badconfig.localIP"));
-            } else if (nginxProxy == null || !nginxProxy.equals("true")) {
+            if (nginxProxy == null || !nginxProxy.equals("true")) {
                 logger.info("X-Forwaded-For was present, but X-Nginx-Proxy not, bailing out!");
                 return sendFailResponse(API.getInstance().getMessage("badconfig.reverseProxy"));
             }
+        } else {
+            originIP = session.getHeaders().get("remote-addr");
         }
 
         /* Get basic headers */
