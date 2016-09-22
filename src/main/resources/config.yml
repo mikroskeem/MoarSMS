@@ -1,0 +1,35 @@
+# MoarSMS configuration
+config:
+    allowTest: false
+    http:
+        host: 127.0.0.1
+        port: 8145
+messages:
+    badconfig:
+        localIP: "Local IP addresses aren't allowed for Fortumo access!"
+        reverseProxy: "Fortumo request handler's reverse proxy is badly configured! Contact with system administrator"
+    badmessage:
+        badUsername: "Username is invalid!"
+    validation:
+        signatureIncorrect: "Signature was incorrect. Spoofing attempt?"
+        undefinedService: "Given service is not defined!"
+        forbiddenIP: "Fortumo request came from forbidden IP address!"
+    test:
+        notAllowed: "Test messages are disabled!"
+    success:
+        thanks: "Thanks for donation!"
+
+services:
+    #service id:
+    #   secret: service secret
+    #   commands:
+    #   - say %user% donated!
+    foo:
+        secret: bar
+        commands:
+        - pex user %user% group add fooRank "" 3600
+        - say %user% donated and got rank fooRank!
+    baz:
+        secret: fuu
+        commands:
+        - say %user% donated 5$ for server!
