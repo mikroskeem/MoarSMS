@@ -1,16 +1,11 @@
 package eu.mikroskeem.moarsms;
 
-public class Hash {
+final class Hash {
+    private Hash(){}
     // http://stackoverflow.com/a/25251120
-    /**
-     *
-     * @param txt, text in plain format
-     * @param hashType MD5 OR SHA1
-     * @return hash in hashType
-     */
-    public static String getHash(String txt, String hashType) {
+    static String md5(String txt) {
         try {
-            java.security.MessageDigest md = java.security.MessageDigest.getInstance(hashType);
+            java.security.MessageDigest md = java.security.MessageDigest.getInstance("MD5");
             byte[] array = md.digest(txt.getBytes());
             StringBuilder sb = new StringBuilder();
             for (byte anArray : array) {
@@ -21,13 +16,5 @@ public class Hash {
             e.printStackTrace();
         }
         return null;
-    }
-
-    public static String md5(String txt) {
-        return getHash(txt, "MD5");
-    }
-
-    public static String sha1(String txt) {
-        return getHash(txt, "SHA1");
     }
 }

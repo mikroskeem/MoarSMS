@@ -2,8 +2,8 @@ package eu.mikroskeem.moarsms;
 
 import java.util.*;
 
-public class FortumoUtils {
-    private static List<String> allowedIPs = new ArrayList<String>(){{
+final class FortumoUtils {
+    private final static List<String> allowedIPs = new ArrayList<String>(){{
         // TODO: use configuration instead of hardcoding
         add("79.125.125.1");
         add("79.125.5.205");
@@ -22,7 +22,7 @@ public class FortumoUtils {
      * @param secret Secret key
      * @return Whether signature was correct
      */
-    public static boolean checkSignature(Map<String, String> params, String secret){
+    static boolean checkSignature(Map<String, String> params, String secret){
         StringBuilder toHash = new StringBuilder();
         SortedSet<String> keys = new TreeSet<>(params.keySet());
         keys.forEach(key->{
@@ -38,7 +38,7 @@ public class FortumoUtils {
      * @param ip IP to check
      * @return Whether IP was allowed or not
      */
-    public static boolean checkIP(String ip){
+    static boolean checkIP(String ip){
         return allowedIPs.stream().filter(i->i.equals(ip)).count() > 0;
     }
 }

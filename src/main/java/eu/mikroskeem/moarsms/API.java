@@ -1,11 +1,10 @@
 package eu.mikroskeem.moarsms;
 
-public class API {
-    private static Platform instance;
+import lombok.Getter;
+
+public final class API {
     private API(){}
-    public static Platform getInstance(){
-        return instance;
-    }
+    @Getter private static Platform instance;
     public static void setInstance(Platform instance1){
         if(instance != null){
             throw new UnsupportedOperationException("Instance is already set!");

@@ -1,17 +1,16 @@
 package eu.mikroskeem.moarsms;
 
 import fi.iki.elonen.NanoHTTPD;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
 
-public class FortumoRequestHandler extends NanoHTTPD {
-    private Map<String, String> serviceSecrets;
-    private boolean allowTest;
-    private Logger logger = LoggerFactory.getLogger(this.getClass());
+@Slf4j
+final class FortumoRequestHandler extends NanoHTTPD {
+    private final Map<String, String> serviceSecrets;
+    private final boolean allowTest;
 
-    public FortumoRequestHandler(String host, int port){
+    FortumoRequestHandler(String host, int port){
         super(host, port);
         serviceSecrets = API.getInstance().getServiceSecrets();
         allowTest = API.getInstance().allowTest();
@@ -21,14 +20,14 @@ public class FortumoRequestHandler extends NanoHTTPD {
         if(!session.getUri().equals("/")){
             return newFixedLengthResponse(Response.Status.NOT_FOUND, "text/plain", "Not Found");
         }
-        logger.info("Beep-boop, got request");
+        log.info("Beep-boop, got request");
         Map<String, String> params = session.getParms();
 
         String originIP = session.getHeaders().get("x-real-ip");
         if(originIP != null){
             String nginxProxy = session.getHeaders().get("x-nginx-proxy");
             if (nginxProxy == null || !nginxProxy.equals("true")) {
-                logger.info("X-Forwaded-For was present, but X-Nginx-Proxy not, bailing out!");
+                log.info("X-Forwaded-For was present, but X-Nginx-Proxy not, bailing out!");
                 return sendFailResponse(API.getInstance().getMessage("badconfig.reverseProxy"));
             }
         } else {
@@ -47,47 +46,47 @@ public class FortumoRequestHandler extends NanoHTTPD {
         String test = params.get("test");
 
         /* Log them */
-        logger.info("Origin IP: {}", originIP);
-        logger.info("Useragent: {}", useragent);
-        logger.info("Sender: {}", sender);
-        logger.info("Keyword: {}", keyword);
-        logger.info("Message: {}", message);
-        logger.info("Test: {}", test);
+        log.info("Origin IP: {}", originIP);
+        log.info("Useragent: {}", useragent);
+        log.info("Sender: {}", sender);
+        log.info("Keyword: {}", keyword);
+        log.info("Message: {}", message);
+        log.info("Test: {}", test);
 
         /* Check parameters */
         if(notNull(signature) && notNull(serviceId) && notNull(keyword) && notNull(message)){
-            logger.info("Got valid Fortumo request!");
+            log.info("Got valid Fortumo request!");
             /* Check for IP */
             if(!FortumoUtils.checkIP(originIP)){
-                logger.info("Request was from non-whitelisted IP '{}'!", originIP);
+                log.info("Request was from non-whitelisted IP '{}'!", originIP);
                 return sendFailResponse(API.getInstance().getMessage("validation.forbiddenIP"));
             }
             /* Check for service id */
             String checkSignature = serviceSecrets.get(serviceId);
             if(checkSignature == null){
-                logger.info("Service '{}' was requested, but it is not defined!", serviceId);
-                logger.info("Keyword was '{}', maybe this helps", keyword);
+                log.info("Service '{}' was requested, but it is not defined!", serviceId);
+                log.info("Keyword was '{}', maybe this helps", keyword);
                 return sendFailResponse(API.getInstance().getMessage("validation.undefinedService"));
             }
 
             /* Check for signature */
             if(!FortumoUtils.checkSignature(params, checkSignature)){
-                logger.info("Signature seems incorrect, correct is '{}', but '{}' was provided",
+                log.info("Signature seems incorrect, correct is '{}', but '{}' was provided",
                         checkSignature, signature);
                 return sendFailResponse(API.getInstance().getMessage("validation.signatureIncorrect"));
             }
 
             /* Check if message it's test message and if they're allowed */
             if(test.equals("true") && !allowTest){
-                logger.info("Test messages are disabled from config, bailing out");
+                log.info("Test messages are disabled from config, bailing out");
                 return sendResponse(API.getInstance().getMessage("test.notallowed"));
             }
 
-            logger.info("Message is valid");
+            log.info("Message is valid");
             return sendResponse(API.getInstance().invokeService(serviceId, message));
         }
 
-        logger.info("Sending fake response");
+        log.info("Sending fake response");
         return newFixedLengthResponse(Response.Status.OK, "text/html",
                 "<!DOCTYPE html>\n" +
                 "<html>\n" +
