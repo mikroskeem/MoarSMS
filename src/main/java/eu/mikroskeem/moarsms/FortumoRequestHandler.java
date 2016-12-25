@@ -77,7 +77,7 @@ final class FortumoRequestHandler extends NanoHTTPD {
             }
 
             /* Check if message it's test message and if they're allowed */
-            if(test.equals("true") && !allowTest){
+            if(test != null && (test.equals("true") && !allowTest)){
                 log.info("Test messages are disabled from config, bailing out");
                 return sendResponse(API.getInstance().getMessage("test.notallowed"));
             }
