@@ -23,6 +23,7 @@ public final class plugin extends JavaPlugin {
                 getConfig().getString("config.http.host"),
                 getConfig().getInt("config.http.port")
         )).start();
+        getCommand("moarsms").setExecutor(new ReloadCommand(pl));
         log.info("Plugin is ready!");
     }
 

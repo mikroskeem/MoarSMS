@@ -2,5 +2,17 @@ name: MoarSMS
 version: ${project.version}
 main: eu.mikroskeem.moarsms.bukkit.plugin
 authors: [mikroskeem]
-description: Accept Fortumo HTTP request and run commands
+description: Accept Fortumo HTTP requests and run commands
 website: https://mikroskeem.eu
+
+commands:
+  moarsms:
+    description: Reload MoarSMS
+    usage: /<command>
+    permission-message: Nope
+    permission: moarsms.moarsms
+
+permissions:
+  moarsms.moarsms:
+    description: Use /moarsms command
+    default: op
