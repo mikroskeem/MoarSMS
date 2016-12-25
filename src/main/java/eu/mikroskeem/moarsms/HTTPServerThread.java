@@ -34,6 +34,7 @@ public final class HTTPServerThread extends Thread {
         }
 
         log.debug("Shutting down HTTP server");
+        httpServer.closeAllConnections();
         httpServer.stop();
     }
 }
