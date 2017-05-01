@@ -6,7 +6,7 @@
 
     <groupId>eu.mikroskeem</groupId>
     <artifactId>moarsms</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.0.2-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>MoarSMS</name>
@@ -14,6 +14,8 @@
     <description>Accept Fortumo HTTP request and run commands</description>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <java.version>1.8</java.version>
+        <kotlin.version>1.1.2-2</kotlin.version>
     </properties>
     <url>https://mikroskeem.eu</url>
 
@@ -21,18 +23,55 @@
         <defaultGoal>clean package</defaultGoal>
         <plugins>
             <plugin>
-                <version>3.1</version>
+                <groupId>org.jetbrains.kotlin</groupId>
+                <artifactId>kotlin-maven-plugin</artifactId>
+                <version>${kotlin.version}</version>
+                <executions>
+                    <execution>
+                        <id>compile</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>test-compile</id>
+                        <phase>test-compile</phase>
+                        <goals>
+                            <goal>test-compile</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.1</version>
                 <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
                 </configuration>
+                <executions>
+                    <execution>
+                        <id>compile</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>testCompile</id>
+                        <phase>test-compile</phase>
+                        <goals>
+                            <goal>testCompile</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>com.github.wvengen</groupId>
                 <artifactId>proguard-maven-plugin</artifactId>
-                <version>2.0.13</version>
+                <version>2.0.14</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -51,21 +90,25 @@
                         <option>-optimizationpasses 5</option>
                         <option>-overloadaggressively</option>
                         <option>-useuniqueclassmembernames</option>
-                        <option>-keepattributes *Annotation*</option>
+                        <option>-keepattributes *Annotation*,Signature</option>
+                        <!--keepclassmembers, // before allowobfuscation !!!-->
                         <option><![CDATA[
-                            -keepclassmembers,allowobfuscation,allowoptimization,allowshrinking class * {
-                                    *;
-                            }
+                        -allowobfuscation,allowoptimization,allowshrinking class * {
+                            *;
+                        }
                         ]]></option>
-                        <option>-keep
-                            public class eu.mikroskeem.moarsms.bukkit.plugin extends
+                        <option>
+                        -keep public class eu.mikroskeem.moarsms.MoarSMSPlugin extends
                             org.bukkit.plugin.java.JavaPlugin {
                             public void onEnable();
                             public void onDisable();
-                        }</option>
-                        <option>-keep class org.slf4j.**</option>
-                        <option>-keep enum org.slf4j.**</option>
-                        <option>-keep interface org.slf4j.**</option>
+                        }
+                        </option>
+                        <option>
+                        -assumenosideeffects class kotlin.jvm.internal.Intrinsics {
+                            static void checkParameterIsNotNull(java.lang.Object, java.lang.String);
+                        }
+                        </option>
                         <option>-dontwarn</option>
                     </options>
                     <libs>
@@ -76,7 +119,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>2.3</version>
+                <version>3.0.0</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -138,31 +181,27 @@
     </repositories>
 
     <dependencies>
+        <!-- Kotlin -->
+        <dependency>
+            <groupId>org.jetbrains.kotlin</groupId>
+            <artifactId>kotlin-stdlib-jre8</artifactId>
+            <version>${kotlin.version}</version>
+            <scope>compile</scope>
+        </dependency>
+
         <!-- Bukkit platform -->
         <dependency>
             <groupId>org.bukkit</groupId>
             <artifactId>bukkit</artifactId>
-            <version>1.10.2-R0.1-SNAPSHOT</version>
+            <version>1.8.8-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
 
         <!-- Shared -->
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>1.7.21</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
             <groupId>org.nanohttpd</groupId>
             <artifactId>nanohttpd</artifactId>
-            <version>2.2.0</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>commons-codec</groupId>
-            <artifactId>commons-codec</artifactId>
-            <version>1.4</version>
+            <version>2.3.1</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -170,12 +209,6 @@
             <artifactId>textutils</artifactId>
             <version>1.1-SNAPSHOT</version>
             <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <version>1.16.10</version>
-            <scope>provided</scope>
         </dependency>
     </dependencies>
 </project>
