@@ -91,9 +91,8 @@
                         <option>-overloadaggressively</option>
                         <option>-useuniqueclassmembernames</option>
                         <option>-keepattributes *Annotation*,Signature</option>
-                        <!--keepclassmembers, // before allowobfuscation !!!-->
                         <option><![CDATA[
-                        -allowobfuscation,allowoptimization,allowshrinking class * {
+                        -keepclassmembers,allowobfuscation,allowoptimization,allowshrinking class * {
                             *;
                         }
                         ]]></option>
@@ -104,11 +103,11 @@
                             public void onDisable();
                         }
                         </option>
-                        <option>
+                        <!--<option>
                         -assumenosideeffects class kotlin.jvm.internal.Intrinsics {
                             static void checkParameterIsNotNull(java.lang.Object, java.lang.String);
                         }
-                        </option>
+                        </option>-->
                         <option>-dontwarn</option>
                     </options>
                     <libs>
@@ -143,12 +142,6 @@
                                     </excludes>
                                 </filter>
                             </filters>
-                            <relocations>
-                                <relocation>
-                                    <pattern>fi.iki.elonen</pattern>
-                                    <shadedPattern>eu.mikroskeem.moarsms.nanohttpd</shadedPattern>
-                                </relocation>
-                            </relocations>
                         </configuration>
                     </execution>
                 </executions>
@@ -196,14 +189,14 @@
             <version>1.8.8-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-all</artifactId>
+            <version>4.0.23.Final</version>
+            <scope>provided</scope>
+        </dependency>
 
         <!-- Shared -->
-        <dependency>
-            <groupId>org.nanohttpd</groupId>
-            <artifactId>nanohttpd</artifactId>
-            <version>2.3.1</version>
-            <scope>compile</scope>
-        </dependency>
         <dependency>
             <groupId>eu.mikroskeem</groupId>
             <artifactId>textutils</artifactId>
