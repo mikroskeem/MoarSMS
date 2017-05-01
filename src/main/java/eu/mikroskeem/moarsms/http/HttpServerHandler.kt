@@ -92,14 +92,14 @@ class HttpServerHandler(private val plugin: MoarSMSPlugin) : SimpleChannelInboun
                 if (signature != null && serviceId != null && keyword != null && message != null) {
                     plugin.logger.info("Got valid Fortumo request!")
                     /* Check for IP */
-                    if (!plugin.fortumoUtils.checkIP(originIP) && successful) {
+                    if (successful && !plugin.fortumoUtils.checkIP(originIP)) {
                         plugin.logger.info("Request was from non-whitelisted IP '$originIP'!")
                         buf.append(plugin.platform.getMessage("validation.forbiddenIP"))
                         successful = false
                     }
                     /* Check for service id */
                     val checkSignature = plugin.platform.getServiceSecrets()[serviceId]
-                    if (checkSignature == null && successful) {
+                    if (successful && checkSignature == null) {
                         plugin.logger.info("Service '$serviceId' was requested, but it is not defined!")
                         plugin.logger.info("Keyword was '$keyword', maybe this helps")
                         buf.append(plugin.platform.getMessage("validation.undefinedService"))
@@ -107,7 +107,7 @@ class HttpServerHandler(private val plugin: MoarSMSPlugin) : SimpleChannelInboun
                     }
 
                     /* Check for signature */
-                    if (!plugin.fortumoUtils.checkSignature(params, checkSignature!!) && successful) {
+                    if (successful && !plugin.fortumoUtils.checkSignature(params, checkSignature!!)) {
                         plugin.logger.info("Signature seems incorrect, correct is '$checkSignature', " +
                                 "but $signature' was provided")
                         buf.append(plugin.platform.getMessage("validation.signatureIncorrect"))
@@ -115,7 +115,7 @@ class HttpServerHandler(private val plugin: MoarSMSPlugin) : SimpleChannelInboun
                     }
 
                     /* Check if message it's test message and if they're allowed */
-                    if (test != null && test == "true" && !plugin.platform.allowTest() && successful) {
+                    if (successful && test != null && test == "true" && !plugin.platform.allowTest()) {
                         plugin.logger.info("Test messages are disabled from config, bailing out")
                         buf.append(plugin.platform.getMessage("test.notallowed"))
                         successful = false
@@ -124,17 +124,17 @@ class HttpServerHandler(private val plugin: MoarSMSPlugin) : SimpleChannelInboun
                     successful = false
                 }
 
-                if(!successful) {
-                    buf.append(defaultResponse)
-                } else {
+                if(successful) {
                     plugin.logger.info("Message is valid")
                     buf.append(plugin.platform.invokeService(serviceId!!, message!!))
+                } else {
+                    buf.append(defaultResponse)
                 }
             }
         }
 
         if (msg is LastHttpContent) {
-            val keepAlive = HttpHeaders.isKeepAlive(request!!)
+            val keepAlive = HttpHeaders.isKeepAlive(request)
             val response = DefaultFullHttpResponse(HTTP_1_1, if(successful) OK else BAD_REQUEST,
                     Unpooled.copiedBuffer(buf.toString(), CharsetUtil.UTF_8))
 
