@@ -16,6 +16,8 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>1.8</java.version>
         <kotlin.version>1.1.2-2</kotlin.version>
+        <stringer.version>3.0.3</stringer.version>
+        <stringer.config>${basedir}/stringer.xml</stringer.config>
     </properties>
     <url>https://mikroskeem.eu</url>
 
@@ -90,7 +92,8 @@
                         <option>-optimizationpasses 5</option>
                         <option>-overloadaggressively</option>
                         <option>-useuniqueclassmembernames</option>
-                        <option>-keepattributes *Annotation*,Signature</option>
+                        <option>-keepattributes *Annotation*, Signature, SourceFile, LineNumberTable</option>
+                        <option>-keep @interface com.stringer.annotations.** { *; }</option>
                         <option><![CDATA[
                         -keepclassmembers,allowobfuscation,allowoptimization,allowshrinking class * {
                             *;
@@ -142,6 +145,22 @@
                                     </excludes>
                                 </filter>
                             </filters>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.licel</groupId>
+                <artifactId>stringer-maven-plugin</artifactId>
+                <version>${stringer.version}</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>stringer</goal>
+                        </goals>
+                        <configuration>
+                            <configFile>${stringer.config}</configFile>
                         </configuration>
                     </execution>
                 </executions>
