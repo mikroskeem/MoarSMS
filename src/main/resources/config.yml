@@ -18,6 +18,16 @@ messages:
     success:
         thanks: "Thanks for donation!"
 
+allowedIps:
+- 79.125.125.1
+- 79.125.5.205
+- 79.125.5.95
+- 54.72.6.126
+- 54.72.6.27
+- 54.72.6.17
+- 54.72.6.23
+- 127.0.0.1
+
 services:
     #service id:
     #   secret: service secret

@@ -129,16 +129,8 @@ class MoarSMSPlugin : JavaPlugin() {
     }
 
     inner class FortumoUtils {
-        private val allowedIPs = listOf(
-            // TODO: use configuration instead of hardcoding
-            "79.125.125.1",
-            "79.125.5.205",
-            "79.125.5.95",
-            "54.72.6.126",
-            "54.72.6.27",
-            "54.72.6.17",
-            "54.72.6.23",
-            "127.0.0.1")
+        internal val allowedIPs: List<String>
+            get() = config.getStringList("allowedIps")
 
         /**
          * Check if signature matches
@@ -167,7 +159,6 @@ class MoarSMSPlugin : JavaPlugin() {
          */
         fun checkIP(ip: String?): Boolean {
             return allowedIPs.contains(ip)
-            //return allowedIPs.stream().filter { i -> i == ip }.count() > 0
         }
     }
 }
