@@ -15,7 +15,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>1.8</java.version>
-        <kotlin.version>1.1.2-5</kotlin.version>
+        <kotlin.version>1.1.4</kotlin.version>
         <stringer.version>3.0.3</stringer.version>
         <stringer.config>${basedir}/stringer.xml</stringer.config>
     </properties>
@@ -126,11 +126,11 @@
                         }
                         ]]></option>
                         <option>
-                        -keep public class eu.mikroskeem.moarsms.MoarSMSPlugin extends
+                            -keep public class eu.mikroskeem.moarsms.bukkit.MoarSMSPlugin extends
                             org.bukkit.plugin.java.JavaPlugin {
                             public void onEnable();
                             public void onDisable();
-                        }
+                            }
                         </option>
                         <!--<option>
                         -assumenosideeffects class kotlin.jvm.internal.Intrinsics {
@@ -217,20 +217,18 @@
             <artifactId>bukkit</artifactId>
             <version>1.8.8-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty-all</artifactId>
             <version>4.0.23.Final</version>
             <scope>provided</scope>
-        </dependency>
-
-        <!-- Shared -->
-        <dependency>
-            <groupId>eu.mikroskeem</groupId>
-            <artifactId>textutils</artifactId>
-            <version>1.1-SNAPSHOT</version>
-            <scope>compile</scope>
         </dependency>
     </dependencies>
 </project>

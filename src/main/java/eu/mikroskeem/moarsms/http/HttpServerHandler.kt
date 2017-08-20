@@ -4,7 +4,7 @@ package eu.mikroskeem.moarsms.http
  * @author Mark Vainomaa
  */
 
-import eu.mikroskeem.moarsms.MoarSMSPlugin
+import eu.mikroskeem.moarsms.Platform
 import io.netty.buffer.Unpooled
 import io.netty.channel.ChannelFutureListener
 import io.netty.channel.ChannelHandlerContext
@@ -14,21 +14,24 @@ import io.netty.handler.codec.http.HttpHeaders.Names.*
 import io.netty.handler.codec.http.HttpResponseStatus.*
 import io.netty.handler.codec.http.HttpVersion.HTTP_1_1
 import io.netty.util.CharsetUtil
+import org.intellij.lang.annotations.Language
 import java.net.InetSocketAddress
 import java.util.*
 
-class HttpServerHandler(private val plugin: MoarSMSPlugin) : SimpleChannelInboundHandler<Any>() {
-    private val defaultResponse =
-            "<!DOCTYPE html>\n" +
-            "<html>\n" +
-            "    <head>\n" +
-            "        <meta charset=\"utf-8\">\n" +
-            "        <title>Nothing to see here</title>\n" +
-            "    </head>\n" +
-            "    <body>\n" +
-            "        <img src=\"https://i.imgflip.com/19e9u5.jpg\" />\n" +
-            "    </body>\n" +
-            "</html>"
+internal class HttpServerHandler(private val platform: Platform) : SimpleChannelInboundHandler<Any>() {
+    @Language("HTML")
+    private val defaultResponse = """
+    <!DOCTYPE html>
+    <html>
+        <head>
+            <meta charset="utf-8">
+            <title>Nothing to see here</title>
+        </head>
+        <body>
+            <img src="https://i.imgflip.com/19e9u5.jpg" />
+        </body>
+    </html>
+    """
 
     private var request: HttpRequest? = null
     private val buf = StringBuilder()
@@ -40,7 +43,7 @@ class HttpServerHandler(private val plugin: MoarSMSPlugin) : SimpleChannelInboun
     override fun channelRead0(ctx: ChannelHandlerContext, msg: Any) {
         var successful = true
         if (msg is HttpRequest) {
-            plugin.logger.info("Beep-boop, got request!")
+            platform.logger.info("Beep-boop, got request!")
             this.request = msg
             val request = msg
 
@@ -52,17 +55,19 @@ class HttpServerHandler(private val plugin: MoarSMSPlugin) : SimpleChannelInboun
             buf.setLength(0)
             if(queryStringDecoder.path() == "/" && msg.method == HttpMethod.GET) {
                 val ipAddr = (ctx.channel().remoteAddress() as InetSocketAddress).address.hostAddress
-                val headers = HashMap<String, String>()
-                request.headers().forEach { entry -> headers.put(entry.key.toLowerCase(Locale.ENGLISH), entry.value) }
-                val params = HashMap<String, String>()
-                queryStringDecoder.parameters().forEach { entry -> params.put(entry.key, entry.value[0]) }
+                val headers = HashMap<String, String>().apply {
+                    request.headers().forEach { put(it.key.toLowerCase(Locale.ENGLISH), it.value) }
+                }
+                val params = HashMap<String, String>().apply {
+                    queryStringDecoder.parameters().forEach { put(it.key, it.value[0]) }
+                }
 
                 var originIP: String? = headers["x-real-ip"]
                 if (originIP != null) {
                     val nginxProxy = headers["x-nginx-proxy"]
                     if (nginxProxy == null || nginxProxy != "true") {
-                        plugin.logger.info("X-Forwaded-For was present, but X-Nginx-Proxy not, bailing out!")
-                        buf.append(plugin.platform.getMessage("badconfig.reverseProxy"))
+                        platform.logger.info("X-Forwaded-For was present, but X-Nginx-Proxy not, bailing out!")
+                        buf.append(platform.getMessage("badconfig.reverseProxy"))
                         successful = false
                     }
                 } else {
@@ -81,43 +86,43 @@ class HttpServerHandler(private val plugin: MoarSMSPlugin) : SimpleChannelInboun
                 val test = params["test"]
 
                 /* Log them */
-                plugin.logger.info("Origin IP: $originIP")
-                plugin.logger.info("Useragent: $useragent")
-                plugin.logger.info("Sender: $sender")
-                plugin.logger.info("Keyword: $keyword")
-                plugin.logger.info("Message: $message")
-                plugin.logger.info("Test: $test")
+                platform.logger.info("Origin IP: $originIP")
+                platform.logger.info("Useragent: $useragent")
+                platform.logger.info("Sender: $sender")
+                platform.logger.info("Keyword: $keyword")
+                platform.logger.info("Message: $message")
+                platform.logger.info("Test: $test")
 
                 /* Check parameters */
                 if (signature != null && serviceId != null && keyword != null && message != null) {
-                    plugin.logger.info("Got valid Fortumo request!")
+                    platform.logger.info("Got valid Fortumo request!")
                     /* Check for IP */
-                    if (successful && !plugin.fortumoUtils.checkIP(originIP)) {
-                        plugin.logger.info("Request was from non-whitelisted IP '$originIP'!")
-                        buf.append(plugin.platform.getMessage("validation.forbiddenIP"))
+                    if (successful && !platform.fortumoUtils.checkIP(originIP)) {
+                        platform.logger.info("Request was from non-whitelisted IP '$originIP'!")
+                        buf.append(platform.getMessage("validation.forbiddenIP"))
                         successful = false
                     }
                     /* Check for service id */
-                    val checkSignature = plugin.platform.getServiceSecrets()[serviceId]
+                    val checkSignature = platform.serviceSecrets[serviceId]
                     if (successful && checkSignature == null) {
-                        plugin.logger.info("Service '$serviceId' was requested, but it is not defined!")
-                        plugin.logger.info("Keyword was '$keyword', maybe this helps")
-                        buf.append(plugin.platform.getMessage("validation.undefinedService"))
+                        platform.logger.info("Service '$serviceId' was requested, but it is not defined!")
+                        platform.logger.info("Keyword was '$keyword', maybe this helps")
+                        buf.append(platform.getMessage("validation.undefinedService"))
                         successful = false
                     }
 
                     /* Check for signature */
-                    if (successful && !plugin.fortumoUtils.checkSignature(params, checkSignature!!)) {
-                        plugin.logger.info("Signature seems incorrect, correct is '$checkSignature', " +
+                    if (successful && !platform.fortumoUtils.checkSignature(params, checkSignature!!)) {
+                        platform.logger.info("Signature seems incorrect, correct is '$checkSignature', " +
                                 "but $signature' was provided")
-                        buf.append(plugin.platform.getMessage("validation.signatureIncorrect"))
+                        buf.append(platform.getMessage("validation.signatureIncorrect"))
                         successful = false
                     }
 
                     /* Check if message it's test message and if they're allowed */
-                    if (successful && test != null && test == "true" && !plugin.platform.allowTest()) {
-                        plugin.logger.info("Test messages are disabled from config, bailing out")
-                        buf.append(plugin.platform.getMessage("test.notallowed"))
+                    if (successful && test != null && test == "true" && !platform.allowTest) {
+                        platform.logger.info("Test messages are disabled from config, bailing out")
+                        buf.append(platform.getMessage("test.notallowed"))
                         successful = false
                     }
                 } else {
@@ -125,8 +130,8 @@ class HttpServerHandler(private val plugin: MoarSMSPlugin) : SimpleChannelInboun
                 }
 
                 if(successful) {
-                    plugin.logger.info("Message is valid")
-                    buf.append(plugin.platform.invokeService(serviceId!!, message!!))
+                    platform.logger.info("Message is valid")
+                    buf.append(platform.invokeService(serviceId!!, message!!))
                 } else {
                     buf.append(defaultResponse)
                 }
@@ -153,8 +158,7 @@ class HttpServerHandler(private val plugin: MoarSMSPlugin) : SimpleChannelInboun
     }
 
     private fun send100Continue(ctx: ChannelHandlerContext) {
-        val response = DefaultFullHttpResponse(HTTP_1_1, CONTINUE)
-        ctx.write(response)
+        ctx.write(DefaultFullHttpResponse(HTTP_1_1, CONTINUE))
     }
 
     override fun exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {

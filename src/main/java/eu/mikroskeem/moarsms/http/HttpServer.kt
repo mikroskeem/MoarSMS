@@ -1,6 +1,6 @@
 package eu.mikroskeem.moarsms.http
 
-import eu.mikroskeem.moarsms.MoarSMSPlugin
+import eu.mikroskeem.moarsms.Platform
 import io.netty.bootstrap.ServerBootstrap
 import io.netty.channel.Channel
 import io.netty.channel.nio.NioEventLoopGroup
@@ -11,31 +11,31 @@ import io.netty.handler.logging.LoggingHandler
 /**
  * @author Mark Vainomaa
  */
-class HttpServer(private val plugin: MoarSMSPlugin) {
-    var host: String? = null
-    var port: Int? = null
+internal class HttpServer(private val platform: Platform) {
+    internal var host: String? = null
+    internal var port: Int? = null
 
-    private var bossGroup : NioEventLoopGroup? = null
-    private var workerGroup : NioEventLoopGroup? = null
-    private var bootstrap : ServerBootstrap? = null
-    private var channel : Channel? = null
+    private var bossGroup: NioEventLoopGroup? = null
+    private var workerGroup: NioEventLoopGroup? = null
+    private var bootstrap: ServerBootstrap? = null
+    private var channel: Channel? = null
 
-    fun start() {
-        bossGroup = NioEventLoopGroup(1)
-        workerGroup = NioEventLoopGroup()
-        bootstrap = ServerBootstrap()
-
-        bootstrap!!.group(bossGroup, workerGroup)
-                .channel(NioServerSocketChannel::class.java)
-                .handler(LoggingHandler(LogLevel.INFO))
-                .childHandler(HttpServerInitializer(plugin))
-
-        channel = bootstrap!!.bind(host, port!!).sync().channel()
+    internal fun start() {
+        bootstrap = ServerBootstrap().apply {
+            this.group(NioEventLoopGroup(1).apply(this@HttpServer::bossGroup::set),
+                    NioEventLoopGroup().apply(this@HttpServer::workerGroup::set))
+                    .channel(NioServerSocketChannel::class.java)
+                    .handler(LoggingHandler(LogLevel.INFO))
+                    .childHandler(HttpServerInitializer(platform))
+            channel = bind(host, port!!).sync().channel()
+        }
     }
 
-    fun stop() {
-        channel!!.close()
-        bossGroup!!.shutdownGracefully()
-        workerGroup!!.shutdownGracefully()
+    internal fun stop() {
+        channel?.close()
+        bossGroup?.shutdownGracefully()
+        workerGroup?.shutdownGracefully()
     }
+
+    internal fun isRunning(): Boolean = channel != null && bootstrap != null && bossGroup != null && workerGroup != null
 }
