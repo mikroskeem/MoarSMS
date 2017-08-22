@@ -4,6 +4,7 @@ config:
     http:
         host: 127.0.0.1
         port: 8145
+        loggingLevel: DEBUG
 messages:
     badconfig:
         reverseProxy: "Fortumo request handler's reverse proxy is badly configured! Contact with system administrator"

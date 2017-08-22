@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2017 Mark Vainomaa
+ *
+ * This source code is proprietary software and must not be distributed and/or copied without the express permission of Mark Vainomaa
+ */
+
 package eu.mikroskeem.moarsms.http
 
 /**
@@ -10,29 +16,14 @@ import io.netty.channel.ChannelFutureListener
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.SimpleChannelInboundHandler
 import io.netty.handler.codec.http.*
-import io.netty.handler.codec.http.HttpHeaders.Names.*
+import io.netty.handler.codec.http.HttpHeaderNames.*
 import io.netty.handler.codec.http.HttpResponseStatus.*
 import io.netty.handler.codec.http.HttpVersion.HTTP_1_1
 import io.netty.util.CharsetUtil
-import org.intellij.lang.annotations.Language
 import java.net.InetSocketAddress
 import java.util.*
 
 internal class HttpServerHandler(private val platform: Platform) : SimpleChannelInboundHandler<Any>() {
-    @Language("HTML")
-    private val defaultResponse = """
-    <!DOCTYPE html>
-    <html>
-        <head>
-            <meta charset="utf-8">
-            <title>Nothing to see here</title>
-        </head>
-        <body>
-            <img src="https://i.imgflip.com/19e9u5.jpg" />
-        </body>
-    </html>
-    """
-
     private var request: HttpRequest? = null
     private val buf = StringBuilder()
 
@@ -43,17 +34,17 @@ internal class HttpServerHandler(private val platform: Platform) : SimpleChannel
     override fun channelRead0(ctx: ChannelHandlerContext, msg: Any) {
         var successful = true
         if (msg is HttpRequest) {
-            platform.logger.info("Beep-boop, got request!")
+            platform.logger.finest("Beep-boop, got request!")
             this.request = msg
             val request = msg
 
-            if (HttpHeaders.is100ContinueExpected(request)) {
-                send100Continue(ctx)
+            if (HttpUtil.is100ContinueExpected(request)) {
+                ctx.write(DefaultFullHttpResponse(HTTP_1_1, CONTINUE))
             }
-            val queryStringDecoder = QueryStringDecoder(request.uri)
+            val queryStringDecoder = QueryStringDecoder(request.uri())
 
             buf.setLength(0)
-            if(queryStringDecoder.path() == "/" && msg.method == HttpMethod.GET) {
+            if(queryStringDecoder.path() == "/" && msg.method() == HttpMethod.GET) {
                 val ipAddr = (ctx.channel().remoteAddress() as InetSocketAddress).address.hostAddress
                 val headers = HashMap<String, String>().apply {
                     request.headers().forEach { put(it.key.toLowerCase(Locale.ENGLISH), it.value) }
@@ -66,7 +57,7 @@ internal class HttpServerHandler(private val platform: Platform) : SimpleChannel
                 if (originIP != null) {
                     val nginxProxy = headers["x-nginx-proxy"]
                     if (nginxProxy == null || nginxProxy != "true") {
-                        platform.logger.info("X-Forwaded-For was present, but X-Nginx-Proxy not, bailing out!")
+                        platform.logger.finest("X-Forwaded-For was present, but X-Nginx-Proxy not, bailing out!")
                         buf.append(platform.getMessage("badconfig.reverseProxy"))
                         successful = false
                     }
@@ -86,34 +77,34 @@ internal class HttpServerHandler(private val platform: Platform) : SimpleChannel
                 val test = params["test"]
 
                 /* Log them */
-                platform.logger.info("Origin IP: $originIP")
-                platform.logger.info("Useragent: $useragent")
-                platform.logger.info("Sender: $sender")
-                platform.logger.info("Keyword: $keyword")
-                platform.logger.info("Message: $message")
-                platform.logger.info("Test: $test")
+                platform.logger.finest("Origin IP: $originIP")
+                platform.logger.finest("Useragent: $useragent")
+                platform.logger.finest("Sender: $sender")
+                platform.logger.finest("Keyword: $keyword")
+                platform.logger.finest("Message: $message")
+                platform.logger.finest("Test: $test")
 
                 /* Check parameters */
                 if (signature != null && serviceId != null && keyword != null && message != null) {
-                    platform.logger.info("Got valid Fortumo request!")
+                    platform.logger.finest("Got valid Fortumo request!")
                     /* Check for IP */
                     if (successful && !platform.fortumoUtils.checkIP(originIP)) {
-                        platform.logger.info("Request was from non-whitelisted IP '$originIP'!")
+                        platform.logger.finest("Request was from non-whitelisted IP '$originIP'!")
                         buf.append(platform.getMessage("validation.forbiddenIP"))
                         successful = false
                     }
                     /* Check for service id */
                     val checkSignature = platform.serviceSecrets[serviceId]
                     if (successful && checkSignature == null) {
-                        platform.logger.info("Service '$serviceId' was requested, but it is not defined!")
-                        platform.logger.info("Keyword was '$keyword', maybe this helps")
+                        platform.logger.finest("Service '$serviceId' was requested, but it is not defined!")
+                        platform.logger.finest("Keyword was '$keyword', maybe this helps")
                         buf.append(platform.getMessage("validation.undefinedService"))
                         successful = false
                     }
 
                     /* Check for signature */
                     if (successful && !platform.fortumoUtils.checkSignature(params, checkSignature!!)) {
-                        platform.logger.info("Signature seems incorrect, correct is '$checkSignature', " +
+                        platform.logger.finest("Signature seems incorrect, correct is '$checkSignature', " +
                                 "but $signature' was provided")
                         buf.append(platform.getMessage("validation.signatureIncorrect"))
                         successful = false
@@ -121,7 +112,7 @@ internal class HttpServerHandler(private val platform: Platform) : SimpleChannel
 
                     /* Check if message it's test message and if they're allowed */
                     if (successful && test != null && test == "true" && !platform.allowTest) {
-                        platform.logger.info("Test messages are disabled from config, bailing out")
+                        platform.logger.finest("Test messages are disabled from config, bailing out")
                         buf.append(platform.getMessage("test.notallowed"))
                         successful = false
                     }
@@ -130,16 +121,16 @@ internal class HttpServerHandler(private val platform: Platform) : SimpleChannel
                 }
 
                 if(successful) {
-                    platform.logger.info("Message is valid")
+                    platform.logger.finest("Message is valid")
                     buf.append(platform.invokeService(serviceId!!, message!!))
                 } else {
-                    buf.append(defaultResponse)
+                    buf.append(platform.defaultResponse)
                 }
             }
         }
 
         if (msg is LastHttpContent) {
-            val keepAlive = HttpHeaders.isKeepAlive(request)
+            val keepAlive = HttpUtil.isKeepAlive(request)
             val response = DefaultFullHttpResponse(HTTP_1_1, if(successful) OK else BAD_REQUEST,
                     Unpooled.copiedBuffer(buf.toString(), CharsetUtil.UTF_8))
 
@@ -148,21 +139,12 @@ internal class HttpServerHandler(private val platform: Platform) : SimpleChannel
 
             if(keepAlive) {
                 response.headers().set(CONTENT_LENGTH, response.content().readableBytes())
-                response.headers().set(CONNECTION, HttpHeaders.Values.KEEP_ALIVE)
+                response.headers().set(CONNECTION, HttpHeaderValues.KEEP_ALIVE)
             }
             ctx.write(response)
             if(!keepAlive) {
                 ctx.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE)
             }
         }
-    }
-
-    private fun send100Continue(ctx: ChannelHandlerContext) {
-        ctx.write(DefaultFullHttpResponse(HTTP_1_1, CONTINUE))
-    }
-
-    override fun exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
-        cause.printStackTrace()
-        ctx.close()
     }
 }

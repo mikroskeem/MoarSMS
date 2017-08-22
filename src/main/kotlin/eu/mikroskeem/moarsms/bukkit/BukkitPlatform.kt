@@ -1,6 +1,14 @@
+/*
+ * Copyright (c) 2017 Mark Vainomaa
+ *
+ * This source code is proprietary software and must not be distributed and/or copied without the express permission of Mark Vainomaa
+ */
+
 package eu.mikroskeem.moarsms.bukkit
 
 import eu.mikroskeem.moarsms.Platform
+import io.netty.handler.logging.LogLevel
+import java.io.ByteArrayOutputStream
 
 /**
  * @author Mark Vainomaa
@@ -19,6 +27,18 @@ internal class BukkitPlatform(private val plugin: MoarSMSPlugin): Platform {
     override val logger get() = plugin.logger!!
 
     override val fortumoUtils get() = plugin.fortumoUtils
+
+    override val defaultResponse by lazy {
+        String(ByteArrayOutputStream().apply {
+            use { plugin.getResource("assets/moarsms/index.html").copyTo(this) }
+        }.toByteArray())
+    }
+
+    override val nettyLoggingLevel: String get() {
+        val configLevel = plugin.config.getString("config.http.loggingLevel", "DEBUG")
+        // Validate
+        return LogLevel.values().find { it.name == configLevel }?.name ?: "DEBUG"
+    }
 
     override fun getMessage(path: String): String = plugin.config.getString("messages.$path", "")
 

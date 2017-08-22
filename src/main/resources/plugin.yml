@@ -1,9 +1,10 @@
-name: MoarSMS
-version: ${project.version}
-main: eu.mikroskeem.moarsms.bukkit.MoarSMSPlugin
-authors: [mikroskeem]
-description: Accept Fortumo HTTP requests and run commands
+name: @name@
+version: @version@
+description: @description@
+main: @group@.moarsms.bukkit.MoarSMSPlugin
 website: https://mikroskeem.eu
+authors:
+- mikroskeem
 
 commands:
   moarsms:

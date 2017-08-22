@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2017 Mark Vainomaa
+ *
+ * This source code is proprietary software and must not be distributed and/or copied without the express permission of Mark Vainomaa
+ */
+
 package eu.mikroskeem.moarsms.http
 
 import eu.mikroskeem.moarsms.Platform
@@ -21,20 +27,27 @@ internal class HttpServer(private val platform: Platform) {
     private var channel: Channel? = null
 
     internal fun start() {
+        platform.logger.finest("HTTPServer start($host:$port)")
+        if(isRunning()) {
+            IllegalStateException("Tried to start HTTP server before stopping it!").printStackTrace()
+            stop()
+        }
         bootstrap = ServerBootstrap().apply {
-            this.group(NioEventLoopGroup(1).apply(this@HttpServer::bossGroup::set),
+            group(NioEventLoopGroup(1).apply(this@HttpServer::bossGroup::set),
                     NioEventLoopGroup().apply(this@HttpServer::workerGroup::set))
                     .channel(NioServerSocketChannel::class.java)
-                    .handler(LoggingHandler(LogLevel.INFO))
+                    .handler(LoggingHandler(HttpServer::class.java, LogLevel.valueOf(platform.nettyLoggingLevel)))
                     .childHandler(HttpServerInitializer(platform))
             channel = bind(host, port!!).sync().channel()
         }
     }
 
     internal fun stop() {
-        channel?.close()
-        bossGroup?.shutdownGracefully()
-        workerGroup?.shutdownGracefully()
+        platform.logger.finest("HTTPServer stop()")
+        channel?.close().apply { channel = null }
+        bootstrap = null
+        bossGroup?.shutdownGracefully().apply { bossGroup = null }
+        workerGroup?.shutdownGracefully().apply { workerGroup = null }
     }
 
     internal fun isRunning(): Boolean = channel != null && bootstrap != null && bossGroup != null && workerGroup != null

@@ -1,0 +1,68 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import proguard.gradle.ProGuardTask
+
+buildscript {
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        jcenter()
+    }
+
+    dependencies {
+        classpath group: 'net.sf.proguard', name: 'proguard-gradle', version: proguard_version
+        classpath group: 'com.github.jengelman.gradle.plugins', name: 'shadow', version: '2.0.1'
+
+        // -PuseStringer=true
+        if(project.hasProperty('useStringer') && Boolean.parseBoolean(project.getProperties().useStringer as String)) {
+            classpath group: 'com.licel', name: 'stringer-gradle-plugin', version: stringer_version
+            classpath group: 'com.licel', name: 'stringer', version: stringer_version
+        }
+    }
+}
+
+apply plugin: 'com.github.johnrengelman.shadow'
+apply plugin: 'java'
+
+task obfBaseJar(type: Jar) {
+    classifier = 'obf-base'
+    from sourceSets.main.output
+}
+
+// https://stackoverflow.com/a/18981605
+task proguard(type: ProGuardTask, dependsOn: [obfBaseJar]) {
+    configuration "$projectDir/proguard.cfg"
+
+    printmapping "$projectDir/build/mapping.pro"
+
+    injars obfBaseJar.archivePath
+    outjars obfBaseJar.archivePath.absolutePath.replace('-base', '')
+
+    libraryjars "${System.getProperty('java.home')}/lib/rt.jar"
+    libraryjars files(configurations.compile.collect())
+    libraryjars files(configurations.compileOnly.collect())
+}
+
+task obfuscatedShadedJar(type: ShadowJar, dependsOn: [proguard]) {
+    classifier = 'obf-shaded'
+    from proguard.outJarFiles
+    configurations = [project.configurations.compile]
+
+    relocate 'kotlin', 'eu.mikroskeem.moarsms.kotlin'
+}
+
+// -PuseStringer=true
+if(project.hasProperty('useStringer') && Boolean.parseBoolean(project.getProperties().useStringer as String)) {
+    /*apply plugin: 'stringer'
+
+    stringer {
+        configFile "${projectDir}/stringer.xml"t
+    }
+
+    build.dependsOn proguard, stringer*/
+} else {
+    if(!(project.hasProperty('dontShade') && Boolean.parseBoolean(project.getProperties().dontShade as String))) {
+        build.dependsOn obfuscatedShadedJar
+    } else {
+        build.dependsOn proguard
+    }
+}
