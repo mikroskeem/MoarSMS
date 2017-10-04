@@ -26,8 +26,6 @@ internal class BukkitPlatform(private val plugin: MoarSMSPlugin): Platform {
 
     override val logger get() = plugin.logger!!
 
-    override val fortumoUtils get() = plugin.fortumoUtils
-
     override val defaultResponse by lazy {
         String(ByteArrayOutputStream().apply {
             use { plugin.getResource("assets/moarsms/index.html").copyTo(this) }

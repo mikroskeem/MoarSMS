@@ -9,10 +9,11 @@ package eu.mikroskeem.moarsms
 import java.util.logging.Logger
 
 /**
+ * Platform interface
+ *
  * @author Mark Vainomaa
  */
 internal interface Platform {
-    val fortumoUtils: FortumoUtils
     val serviceSecrets: Map<String, String>
     val allowTest: Boolean
     val logger: Logger

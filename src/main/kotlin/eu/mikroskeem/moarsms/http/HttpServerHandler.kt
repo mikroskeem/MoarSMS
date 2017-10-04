@@ -6,6 +6,7 @@
 
 package eu.mikroskeem.moarsms.http
 
+import eu.mikroskeem.moarsms.FortumoUtils
 import eu.mikroskeem.moarsms.Platform
 import io.netty.buffer.Unpooled
 import io.netty.channel.ChannelFutureListener
@@ -97,7 +98,7 @@ internal class HttpServerHandler(private val platform: Platform) : SimpleChannel
                 if(successful && signature != null && serviceId != null && keyword != null && message != null) {
                     platform.logger.finest("Got valid Fortumo request!")
                     /* Check for IP */
-                    if (successful && !platform.fortumoUtils.checkIP(originIP)) {
+                    if (successful && !FortumoUtils.checkIP(originIP)) {
                         platform.logger.finest("Request was from non-whitelisted IP '$originIP'!")
                         buf.append(platform.getMessage("validation.forbiddenIP"))
                         successful = false
@@ -112,7 +113,7 @@ internal class HttpServerHandler(private val platform: Platform) : SimpleChannel
                     }
 
                     /* Check for signature */
-                    if (successful && !platform.fortumoUtils.checkSignature(params, checkSignature!!)) {
+                    if (successful && !FortumoUtils.checkSignature(params, checkSignature!!)) {
                         platform.logger.finest("Signature seems incorrect, correct is '$checkSignature', " +
                                 "but $signature' was provided")
                         buf.append(platform.getMessage("validation.signatureIncorrect"))

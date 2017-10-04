@@ -27,7 +27,6 @@ class MoarSMSPlugin : JavaPlugin() {
             }
         }
     }
-    internal val fortumoUtils by lazy { FortumoUtils() }
     private var e = Executors.newSingleThreadExecutor()
 
     private lateinit var httpServerThread: HTTPServerThread
@@ -47,7 +46,7 @@ class MoarSMSPlugin : JavaPlugin() {
         saveConfig()
 
         logger.finest("Setting up platform")
-        fortumoUtils.allowedIPs = config.getStringList("allowedIps")
+        FortumoUtils.allowedIPs = config.getStringList("allowedIps")
         platform = BukkitPlatform(this)
 
         logger.finest("Starting HTTP thread")
@@ -90,7 +89,7 @@ class MoarSMSPlugin : JavaPlugin() {
     override fun reloadConfig() {
         logger.finest("Reloading configuration")
         super.reloadConfig()
-        fortumoUtils.allowedIPs = config.getStringList("allowedIps")
+        FortumoUtils.allowedIPs = config.getStringList("allowedIps")
     }
 
     private inner class HTTPServerThread : Thread() {
