@@ -15,6 +15,8 @@ import io.netty.handler.codec.http.HttpRequestDecoder
 import io.netty.handler.codec.http.HttpResponseEncoder
 
 /**
+ * HTTP server channel initializer
+ *
  * @author Mark Vainomaa
  */
 internal class HttpServerInitializer(private val platform: Platform) : ChannelInitializer<SocketChannel>() {

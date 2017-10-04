@@ -15,9 +15,10 @@ import java.io.IOException
 import java.util.concurrent.Executors
 
 /**
+ * The MoarSMS plugin
+ *
  * @author Mark Vainomaa
  */
-
 class MoarSMSPlugin : JavaPlugin() {
     private val tamperCheck: TamperCheck by lazy {
         TamperCheck().apply {

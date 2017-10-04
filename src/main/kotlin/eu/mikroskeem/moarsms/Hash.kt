@@ -11,6 +11,8 @@ import kotlin.experimental.and
 import kotlin.experimental.or
 
 /**
+ * md5 hash utility
+ *
  * @author Mark Vainomaa
  */
 private const val zero_x_ff: Byte = (0xFF).toByte()

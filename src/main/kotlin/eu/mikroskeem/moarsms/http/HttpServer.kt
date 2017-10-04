@@ -15,6 +15,8 @@ import io.netty.handler.logging.LogLevel
 import io.netty.handler.logging.LoggingHandler
 
 /**
+ * HTTP server manager
+ *
  * @author Mark Vainomaa
  */
 internal class HttpServer(private val platform: Platform) {

@@ -6,10 +6,6 @@
 
 package eu.mikroskeem.moarsms.http
 
-/**
- * @author Mark Vainomaa
- */
-
 import eu.mikroskeem.moarsms.Platform
 import io.netty.buffer.Unpooled
 import io.netty.channel.ChannelFutureListener
@@ -34,6 +30,11 @@ import io.netty.util.CharsetUtil
 import java.net.InetSocketAddress
 import java.util.Locale
 
+/**
+ * HTTP server request handler
+ *
+ * @author Mark Vainomaa
+ */
 internal class HttpServerHandler(private val platform: Platform) : SimpleChannelInboundHandler<Any>() {
     private var request: HttpRequest? = null
     private val buf = StringBuilder()
@@ -66,7 +67,7 @@ internal class HttpServerHandler(private val platform: Platform) : SimpleChannel
 
                 val originIP: String = headers["x-real-ip"]?.run {
                     if (headers["x-nginx-proxy"] != "true") {
-                        platform.logger.finest("X-Forwaded-For was present, but X-Nginx-Proxy not, bailing out!")
+                        platform.logger.finest("X-Real-IP was present, but X-Nginx-Proxy not, bailing out!")
                         buf.append(platform.getMessage("badconfig.reverseProxy"))
                         successful = false
                     }
