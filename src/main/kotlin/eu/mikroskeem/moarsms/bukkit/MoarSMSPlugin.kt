@@ -127,14 +127,14 @@ class MoarSMSPlugin : JavaPlugin() {
         internal fun doCheck(onFailure: () -> Unit) {
             try {
                 this@MoarSMSPlugin.description.apply {
-                    assert(name, "MoarSMS")
-                    assert(description, "Accept Fortumo HTTP requests and run commands")
-                    assert(version, "0.0.2-SNAPSHOT")
-                    assert(authors?.size, 1)
-                    assert(authors[0], "mikroskeem")
-                    assert(main, MoarSMSPlugin::class.java.name)
-                    assert(website, "https://mikroskeem.eu")
-                    assert(depend.size, 0)
+                    name mustBe "MoarSMS"
+                    description mustBe "Accept Fortumo HTTP requests and run commands"
+                    version mustBe "0.0.2-SNAPSHOT"
+                    authors?.size mustBe 1
+                    authors[0] mustBe "mikroskeem"
+                    main mustBe MoarSMSPlugin::class.java.name
+                    website mustBe "https://mikroskeem.eu"
+                    depend.size mustBe 0
                 }
             } catch (e: RuntimeException) {
                 failed = true
@@ -143,9 +143,9 @@ class MoarSMSPlugin : JavaPlugin() {
             }
         }
 
-        private fun assert(expected: Any?, actual: Any) {
-            logger.finest("Checking if '$actual' != '$expected'...")
-            if(expected != actual) throw RuntimeException("Plugin corruption error. Please ask for a new plugin jar.")
+        private infix fun Any?.mustBe(actual: Any) {
+            logger.finest("Checking if '$actual' != '$this'...")
+            if(this != actual) throw RuntimeException("Plugin corruption error. Please ask for a new plugin jar.")
         }
     }
 }
