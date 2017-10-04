@@ -80,18 +80,13 @@ shadowJar {
     relocate 'kotlin', 'eu.mikroskeem.moarsms.kotlin'
 }
 
-// -PuseProguard=true
-if(project.hasProperty('useProguard') && Boolean.parseBoolean(project.getProperties().useProguard as String)) {
-    apply from: 'obf.gradle'
+// -PuseJRebel=true
+if(project.hasProperty('useJRebel') && Boolean.parseBoolean(project.getProperties().useJRebel as String)) {
+    jar.dependsOn generateRebel
 } else {
-    // -PuseJRebel=true
-    if(project.hasProperty('useJRebel') && Boolean.parseBoolean(project.getProperties().useJRebel as String)) {
-        jar.dependsOn generateRebel
-    } else {
-        // -PdontShade=true
-        if(!(project.hasProperty('dontShade') && Boolean.parseBoolean(project.getProperties().dontShade as String)))
-            build.dependsOn shadowJar
-    }
+    // -PdontShade=true
+    if(!(project.hasProperty('dontShade') && Boolean.parseBoolean(project.getProperties().dontShade as String)))
+        build.dependsOn shadowJar
 }
 
 defaultTasks 'build'

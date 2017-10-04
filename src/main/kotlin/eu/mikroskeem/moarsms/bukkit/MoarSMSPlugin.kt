@@ -129,7 +129,7 @@ class MoarSMSPlugin : JavaPlugin() {
                 this@MoarSMSPlugin.description.apply {
                     name mustBe "MoarSMS"
                     description mustBe "Accept Fortumo HTTP requests and run commands"
-                    version mustBe "0.0.2-SNAPSHOT"
+                    version mustBe "0.0.3-SNAPSHOT"
                     authors?.size mustBe 1
                     authors[0] mustBe "mikroskeem"
                     main mustBe MoarSMSPlugin::class.java.name
