@@ -15,13 +15,24 @@ import io.netty.buffer.Unpooled
 import io.netty.channel.ChannelFutureListener
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.SimpleChannelInboundHandler
-import io.netty.handler.codec.http.*
-import io.netty.handler.codec.http.HttpHeaderNames.*
-import io.netty.handler.codec.http.HttpResponseStatus.*
+import io.netty.handler.codec.http.DefaultFullHttpResponse
+import io.netty.handler.codec.http.HttpHeaderNames.CONNECTION
+import io.netty.handler.codec.http.HttpHeaderNames.CONTENT_LENGTH
+import io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE
+import io.netty.handler.codec.http.HttpHeaderNames.SERVER
+import io.netty.handler.codec.http.HttpHeaderValues.KEEP_ALIVE
+import io.netty.handler.codec.http.HttpMethod
+import io.netty.handler.codec.http.HttpRequest
+import io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST
+import io.netty.handler.codec.http.HttpResponseStatus.CONTINUE
+import io.netty.handler.codec.http.HttpResponseStatus.OK
+import io.netty.handler.codec.http.HttpUtil
 import io.netty.handler.codec.http.HttpVersion.HTTP_1_1
+import io.netty.handler.codec.http.LastHttpContent
+import io.netty.handler.codec.http.QueryStringDecoder
 import io.netty.util.CharsetUtil
 import java.net.InetSocketAddress
-import java.util.*
+import java.util.Locale
 
 internal class HttpServerHandler(private val platform: Platform) : SimpleChannelInboundHandler<Any>() {
     private var request: HttpRequest? = null
@@ -53,17 +64,14 @@ internal class HttpServerHandler(private val platform: Platform) : SimpleChannel
                     queryStringDecoder.parameters().forEach { put(it.key, it.value[0]) }
                 }
 
-                var originIP: String? = headers["x-real-ip"]
-                if (originIP != null) {
-                    val nginxProxy = headers["x-nginx-proxy"]
-                    if (nginxProxy == null || nginxProxy != "true") {
+                val originIP: String = headers["x-real-ip"]?.run {
+                    if (headers["x-nginx-proxy"] != "true") {
                         platform.logger.finest("X-Forwaded-For was present, but X-Nginx-Proxy not, bailing out!")
                         buf.append(platform.getMessage("badconfig.reverseProxy"))
                         successful = false
                     }
-                } else {
-                    originIP = ipAddr
-                }
+                    this
+                } ?: ipAddr
 
                 /* Get basic headers */
                 val useragent = headers["user-agent"]
@@ -85,7 +93,7 @@ internal class HttpServerHandler(private val platform: Platform) : SimpleChannel
                 platform.logger.finest("Test: $test")
 
                 /* Check parameters */
-                if (signature != null && serviceId != null && keyword != null && message != null) {
+                if(successful && signature != null && serviceId != null && keyword != null && message != null) {
                     platform.logger.finest("Got valid Fortumo request!")
                     /* Check for IP */
                     if (successful && !platform.fortumoUtils.checkIP(originIP)) {
@@ -129,7 +137,7 @@ internal class HttpServerHandler(private val platform: Platform) : SimpleChannel
             }
         }
 
-        if (msg is LastHttpContent) {
+        if(msg is LastHttpContent) {
             val keepAlive = HttpUtil.isKeepAlive(request)
             val response = DefaultFullHttpResponse(HTTP_1_1, if(successful) OK else BAD_REQUEST,
                     Unpooled.copiedBuffer(buf.toString(), CharsetUtil.UTF_8))
@@ -139,7 +147,7 @@ internal class HttpServerHandler(private val platform: Platform) : SimpleChannel
 
             if(keepAlive) {
                 response.headers().set(CONTENT_LENGTH, response.content().readableBytes())
-                response.headers().set(CONNECTION, HttpHeaderValues.KEEP_ALIVE)
+                response.headers().set(CONNECTION, KEEP_ALIVE)
             }
             ctx.write(response)
             if(!keepAlive) {
