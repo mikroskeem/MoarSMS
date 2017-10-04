@@ -27,7 +27,7 @@ class MoarSMSPlugin : JavaPlugin() {
         }
     }
     internal val fortumoUtils by lazy { FortumoUtils() }
-    private val e by lazy { Executors.newSingleThreadExecutor() }
+    private var e = Executors.newSingleThreadExecutor()
 
     private lateinit var httpServerThread: HTTPServerThread
     private lateinit var platform : BukkitPlatform
@@ -68,7 +68,14 @@ class MoarSMSPlugin : JavaPlugin() {
                 sender.sendMessage("Restarting HTTP server on new host and port...")
                 synchronized(httpServerThread.lock) {
                     httpServerThread.lock.notifyAll()
-                    httpServerThread.lock.wait() // TODO: timeout?
+                    try {
+                        httpServerThread.lock.wait(5000)
+                    } catch (e: InterruptedException) {
+                        logger.warning("Forcefully killed thread executor with ${this@MoarSMSPlugin.e.shutdownNow().size} tasks")
+                        this@MoarSMSPlugin.e = Executors.newSingleThreadExecutor()
+                        e.printStackTrace()
+                        sender.sendMessage("Failed to stop HTTP old server! See logs. ${e.message}")
+                    }
                 }
                 e.submit(HTTPServerThread().apply(this::httpServerThread::set))
                 sender.sendMessage("Done")
