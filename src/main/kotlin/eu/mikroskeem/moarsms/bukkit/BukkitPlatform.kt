@@ -64,11 +64,14 @@ internal class BukkitPlatform(private val plugin: MoarSMSPlugin): Platform {
         if(username.length !in 3..16 || !username.matches(usernamePattern)) {
             return this.getMessage("badmessage.badUsername")
         }
-        plugin.config.getStringList("services.$serviceId.commands").forEach {
-            plugin.server.scheduler.runTask(plugin) {
-                plugin.server.dispatchCommand(plugin.server.consoleSender, it.replace("%user%", username))
+
+        val commands = ArrayList(plugin.config.getStringList("services.$serviceId.commands"))
+        plugin.server.scheduler.runTask(plugin) {
+            commands.map { it.replace("%user%", username) }.forEach {
+                plugin.server.dispatchCommand(plugin.server.consoleSender, it)
             }
         }
+
         return this.getMessage("success.thanks")
     }
 }
