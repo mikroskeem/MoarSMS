@@ -84,7 +84,7 @@ if((project.properties["useJRebel"] as? String?)?.toBoolean() == true) {
     tasks.getByName("jar").dependsOn(tasks.getByName("generateRebel"))
 } else {
     // if -PdontShade=true is defined, then 'build' won't depend on 'shadowJar' task
-    if((project.properties["dontShade"] as? String?)?.toBoolean() == false) {
+    if(!((project.properties["dontShade"] as? String?)?.toBoolean() == true)) {
         tasks.getByName("build").dependsOn(tasks.getByName("shadowJar"))
     }
 }
