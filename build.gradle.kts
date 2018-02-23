@@ -3,7 +3,7 @@ import net.minecrell.pluginyml.bukkit.BukkitPluginDescription.Permission.Default
 
 plugins {
     kotlin("jvm") version "1.2.21"
-    id("org.zeroturnaround.gradle.jrebel") version "1.1.6"
+    id("org.zeroturnaround.gradle.jrebel") version "1.1.8"
     id("com.github.johnrengelman.shadow") version "2.0.2"
     id("net.minecrell.licenser") version "0.3"
     id("net.minecrell.plugin-yml.bukkit") version "0.2.1"
