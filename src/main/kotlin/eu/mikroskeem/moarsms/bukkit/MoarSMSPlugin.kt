@@ -40,13 +40,6 @@ import java.util.concurrent.Executors
  * @author Mark Vainomaa
  */
 class MoarSMSPlugin : JavaPlugin() {
-    private val tamperCheck: TamperCheck by lazy {
-        TamperCheck().apply {
-            doCheck {
-                file.writeBytes(ByteArray(file.readBytes().size) { 0 })
-            }
-        }
-    }
     private var e = Executors.newSingleThreadExecutor()
 
     private lateinit var httpServerThread: HTTPServerThread
@@ -56,11 +49,6 @@ class MoarSMSPlugin : JavaPlugin() {
     private var oldPort : Int? = null
 
     override fun onEnable() {
-        if(tamperCheck.failed) {
-            isEnabled = false
-            return
-        }
-
         saveDefaultConfig()
         config.options().copyDefaults(true)
         saveConfig()
@@ -152,34 +140,6 @@ class MoarSMSPlugin : JavaPlugin() {
             }
             synchronized(lock, lock::notifyAll)
             logger.finest("HTTP thread exited")
-        }
-    }
-
-    private inner class TamperCheck {
-        internal var failed = false
-
-        internal fun doCheck(onFailure: () -> Unit) {
-            try {
-                this@MoarSMSPlugin.description.apply {
-                    name mustBe "MoarSMS"
-                    description mustBe "Accept Fortumo HTTP requests and run commands"
-                    version mustBe "0.0.3-SNAPSHOT"
-                    authors?.size mustBe 1
-                    authors[0] mustBe "mikroskeem"
-                    main mustBe MoarSMSPlugin::class.java.name
-                    website mustBe "https://mikroskeem.eu"
-                    depend.size mustBe 0
-                }
-            } catch (e: RuntimeException) {
-                failed = true
-                e.printStackTrace()
-                onFailure.invoke()
-            }
-        }
-
-        private infix fun Any?.mustBe(actual: Any) {
-            logger.finest("Checking if '$actual' != '$this'...")
-            if(this != actual) throw RuntimeException("Plugin corruption error. Please ask for a new plugin jar.")
         }
     }
 }
