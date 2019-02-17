@@ -2,30 +2,25 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import net.minecrell.pluginyml.bukkit.BukkitPluginDescription.Permission.Default.OP
 
 plugins {
-    kotlin("jvm") version "1.2.21"
-    id("org.zeroturnaround.gradle.jrebel") version "1.1.8"
-    id("com.github.johnrengelman.shadow") version "2.0.2"
-    id("net.minecrell.licenser") version "0.3"
-    id("net.minecrell.plugin-yml.bukkit") version "0.2.1"
+    kotlin("jvm") version "1.3.21"
+    id("com.github.johnrengelman.shadow") version "4.0.4"
+    id("net.minecrell.licenser") version "0.4.1"
+    id("net.minecrell.plugin-yml.bukkit") version "0.3.0"
 }
 
-val nettyVersion: String by extra
-val paperApiVersion: String by extra
-val bstatsVersion: String by extra
-val gradleWrapperVersion: String by extra
+group = "eu.mikroskeem"
+version = "0.0.3-SNAPSHOT"
+
+val nettyVersion = "4.1.19.Final"
+val paperApiVersion = "1.12.1-R0.1-SNAPSHOT"
+val bstatsVersion = "1.2"
 
 repositories {
     mavenLocal()
     mavenCentral()
 
-    maven {
-        name = "destroystokyo-repo"
-        setUrl("https://repo.destroystokyo.com/repository/maven-public/")
-    }
-    maven {
-        name = "bstats-repo"
-        setUrl("http://repo.bstats.org/content/repositories/releases/")
-    }
+    maven("https://repo.destroystokyo.com/repository/maven-public/")
+    maven("http://repo.bstats.org/content/repositories/releases/")
 }
 
 dependencies {
@@ -34,7 +29,7 @@ dependencies {
     }
     compileOnly("io.netty:netty-all:$nettyVersion")
 
-    implementation(kotlin("stdlib-jdk8", "1.2.21"))
+    implementation(kotlin("stdlib-jdk8"))
     implementation("org.bstats:bstats-bukkit:$bstatsVersion")
 }
 
@@ -51,7 +46,7 @@ bukkit {
     main = "$group.moarsms.bukkit.MoarSMSPlugin"
 
     commands {
-        "moarsms" {
+        create("moarsms") {
             description = "Reload MoarSMS"
             usage = "/<command>"
             permissionMessage = "Nope"
@@ -60,7 +55,7 @@ bukkit {
     }
 
     permissions {
-        "moarsms.moarsms" {
+        create("moarsms.moarsms") {
             description = "Use /moarsms command"
             default = OP
         }
@@ -68,25 +63,8 @@ bukkit {
 }
 
 val shadowJar by tasks.getting(ShadowJar::class) {
-    classifier = "shaded"
-
     relocate("kotlin", "eu.mikroskeem.moarsms.kotlin")
     relocate("org.bstats", "eu.mikroskeem.moarsms.bstats")
-}
-
-val wrapper by tasks.creating(Wrapper::class) {
-    gradleVersion = gradleWrapperVersion
-    distributionUrl = "https://services.gradle.org/distributions/gradle-$gradleVersion-all.zip"
-}
-
-// -PuseJRebel=true
-if((project.properties["useJRebel"] as? String?)?.toBoolean() == true) {
-    tasks.getByName("jar").dependsOn(tasks.getByName("generateRebel"))
-} else {
-    // if -PdontShade=true is defined, then 'build' won't depend on 'shadowJar' task
-    if(!((project.properties["dontShade"] as? String?)?.toBoolean() == true)) {
-        tasks.getByName("build").dependsOn(tasks.getByName("shadowJar"))
-    }
 }
 
 defaultTasks("build")
