@@ -37,7 +37,7 @@ internal class BukkitPlatform(private val plugin: MoarSMSPlugin): Platform {
 
     override val serviceSecrets get() = HashMap<String, String>().apply {
         plugin.config.getConfigurationSection("services").getValues(false).forEach { cServiceId, _ ->
-            put(cServiceId, plugin.config.getString("services.$cServiceId.secret"))
+            put(cServiceId, plugin.config.getString("services.$cServiceId.secret", ""))
         }
     }
 
