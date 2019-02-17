@@ -61,7 +61,7 @@ internal class BukkitPlatform(private val plugin: MoarSMSPlugin): Platform {
 
     override fun invokeService(serviceId: String, message: String): String {
         val username = message.trim { it <= ' ' }
-        if(username.length !in 3..16 || !username.matches(usernamePattern)) {
+        if(username.length !in 1..32 || !username.matches(usernamePattern)) {
             return this.getMessage("badmessage.badUsername")
         }
 
