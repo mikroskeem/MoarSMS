@@ -32,7 +32,4 @@ import org.apache.commons.codec.digest.DigestUtils
  *
  * @author Mark Vainomaa
  */
-
-internal object Hash {
-    internal fun md5(text: String): String = DigestUtils.md5Hex(text)
-}
+internal fun md5sum(text: String): String = DigestUtils.md5Hex(text)

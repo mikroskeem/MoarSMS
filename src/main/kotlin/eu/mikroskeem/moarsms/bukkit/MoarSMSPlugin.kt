@@ -25,7 +25,7 @@
 
 package eu.mikroskeem.moarsms.bukkit
 
-import eu.mikroskeem.moarsms.FortumoUtils
+import eu.mikroskeem.moarsms.allowedFortumoIPs
 import eu.mikroskeem.moarsms.http.HttpServer
 import org.bstats.bukkit.Metrics
 import org.bukkit.command.Command
@@ -66,20 +66,20 @@ class MoarSMSPlugin : JavaPlugin() {
         saveConfig()
 
         logger.finest("Setting up platform")
-        FortumoUtils.allowedIPs = config.getStringList("allowedIps")
+        allowedFortumoIPs = config.getStringList("allowedIps")
         platform = BukkitPlatform(this)
 
         // Do metrics
         Thread({
             val metrics = Metrics(this@MoarSMSPlugin)
 
-            metrics.addCustomChart(Metrics.SimplePie("test_sms_allowed", {
+            metrics.addCustomChart(Metrics.SimplePie("test_sms_allowed") {
                 if(platform.allowTest) "allowed" else "disallowed"
-            }))
+            })
 
-            metrics.addCustomChart(Metrics.SimplePie("defined_services_amount", {
+            metrics.addCustomChart(Metrics.SimplePie("defined_services_amount") {
                 "${platform.serviceSecrets.size}"
-            }))
+            })
 
         }, "bStats thread").start()
 
@@ -123,7 +123,7 @@ class MoarSMSPlugin : JavaPlugin() {
     override fun reloadConfig() {
         logger.finest("Reloading configuration")
         super.reloadConfig()
-        FortumoUtils.allowedIPs = config.getStringList("allowedIps")
+        allowedFortumoIPs = config.getStringList("allowedIps")
     }
 
     private inner class HTTPServerThread : Thread() {
