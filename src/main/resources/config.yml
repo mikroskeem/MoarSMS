@@ -37,7 +37,7 @@ services:
     foo:
         secret: bar
         commands:
-        - pex user %user% group add fooRank "" 3600
+        - lp user %user% group tempadd fooRank 1h
         - say %user% donated and got rank fooRank!
     baz:
         secret: fuu
