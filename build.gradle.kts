@@ -2,8 +2,8 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import net.minecrell.pluginyml.bukkit.BukkitPluginDescription.Permission.Default.OP
 
 plugins {
-    kotlin("jvm") version "1.3.21"
-    id("com.github.johnrengelman.shadow") version "4.0.4"
+    kotlin("jvm") version "1.3.41"
+    id("com.github.johnrengelman.shadow") version "5.0.0"
     id("net.minecrell.licenser") version "0.4.1"
     id("net.minecrell.plugin-yml.bukkit") version "0.3.0"
 }
