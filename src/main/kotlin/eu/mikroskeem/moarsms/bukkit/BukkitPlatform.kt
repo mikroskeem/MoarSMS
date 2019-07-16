@@ -65,9 +65,9 @@ internal class BukkitPlatform(private val plugin: MoarSMSPlugin): Platform {
             return this.getMessage("badmessage.badUsername")
         }
 
-        val commands = ArrayList(plugin.config.getStringList("services.$serviceId.commands"))
-        plugin.server.scheduler.runTask(plugin) {
-            commands.map { it.replace("%user%", username) }.forEach {
+        val commands = plugin.config.getStringList("services.$serviceId.commands")
+        commands.map { it.replace("%user%", username) }.forEach {
+            plugin.server.scheduler.runTask(plugin) {
                 plugin.server.dispatchCommand(plugin.server.consoleSender, it)
             }
         }
