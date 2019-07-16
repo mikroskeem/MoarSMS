@@ -67,4 +67,6 @@ val shadowJar by tasks.getting(ShadowJar::class) {
     relocate("org.bstats", "eu.mikroskeem.moarsms.bstats")
 }
 
+tasks["build"].dependsOn("shadowJar")
+
 defaultTasks("build")
