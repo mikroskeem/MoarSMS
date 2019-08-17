@@ -1,5 +1,7 @@
 # MoarSMS
 
+# NOT MAINTAINED ANYMORE
+
 Fortumo [PSMS API](https://merchants.fortumo.com/integration-and-testing/api/) handler for Bukkit
 
 ## Requirements
